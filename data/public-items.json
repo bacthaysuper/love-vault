@@ -1,0 +1,50 @@
+[
+  {
+    "id": "travel-1",
+    "category": "travel",
+    "type": "public",
+    "name": "Da Lat",
+    "price": "14,000,000₫",
+    "completed": false
+  },
+  {
+    "id": "travel-2",
+    "category": "travel",
+    "type": "public",
+    "name": "Ta Xua",
+    "price": "3,000,000₫",
+    "completed": false
+  },
+  {
+    "id": "shop-1",
+    "category": "shopping",
+    "type": "public",
+    "name": "Iphone 17 Pro Max",
+    "price": "34,090,000₫",
+    "completed": false
+  },
+  {
+    "id": "shop-2",
+    "category": "shopping",
+    "type": "public",
+    "name": "Necklace",
+    "price": "800,000₫",
+    "completed": false
+  },
+  {
+    "id": "travel-3",
+    "category": "travel",
+    "type": "public",
+    "name": "Da Nang",
+    "price": "12,000,000₫",
+    "completed": false
+  },
+  {
+    "id": "travel-4",
+    "category": "travel",
+    "type": "public",
+    "name": "Phu Quoc",
+    "price": "27,000,000₫",
+    "completed": false
+  }
+]

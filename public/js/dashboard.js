@@ -1,0 +1,122 @@
+async function loadItems() {
+  const res = await fetch('/api/items');
+  const items = await res.json();
+
+  const travelItems = items.filter(item => item.category === 'travel');
+  const shopItems = items.filter(item => item.category === 'shopping');
+
+  renderList('travel-list', travelItems);
+  renderList('shop-list', shopItems);
+
+  updateTotal('travel-total', travelItems);
+  updateTotal('shop-total', shopItems);
+}
+
+function renderList(elementId, items) {
+  const listElement = document.getElementById(elementId);
+
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.dataset.id = item.id;
+
+    if (item.type === 'secret') {
+      row.className = 'ledger-row secret';
+      row.innerHTML = `
+        <span class="name">Secret item</span>
+        <svg class="seal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="4" y="10" width="16" height="10" rx="1.5"></rect>
+          <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+        </svg>
+      `;
+      row.addEventListener('click', () => openPuzzle(item));
+    } else {
+      row.className = 'ledger-row';
+      row.innerHTML = `
+        <label class="check">
+          <input type="checkbox" ${item.completed ? 'checked' : ''}>
+          <span class="name">${item.name}</span>
+        </label>
+        <span class="price">${item.price}</span>
+      `;
+
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      checkbox.addEventListener('change', () => toggleItem(item.id, row));
+    }
+
+    listElement.appendChild(row);
+  });
+}
+
+async function toggleItem(itemId, row) {
+  await fetch(`/api/items/${itemId}/toggle`, { method: 'POST' });
+  row.classList.toggle('completed');
+}
+
+function updateTotal(elementId, items) {
+  const total = items.reduce((sum, item) => {
+    if (item.type === 'secret' && !item.price) return sum;
+    const numeric = Number((item.price || '').replace(/[^\d]/g, ''));
+    return sum + numeric;
+  }, 0);
+
+  const formatted = total.toLocaleString('en-US') + '₫';
+  document.getElementById(elementId).innerHTML = `Total: <strong>${formatted}</strong>`;
+}
+
+function openPuzzle(item) {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal">
+      <h3>Solve to reveal</h3>
+      <p>${item.question}</p>
+      <input type="text" id="answerInput" placeholder="Your answer...">
+      <div id="feedback"></div>
+      <button id="checkBtn">Check</button>
+      <button id="closeBtn">Close</button>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+
+  document.getElementById('closeBtn').addEventListener('click', () => {
+    backdrop.remove();
+  });
+
+  document.getElementById('checkBtn').addEventListener('click', async () => {
+    const answer = document.getElementById('answerInput').value;
+    const feedback = document.getElementById('feedback');
+
+    const res = await fetch(`/api/items/${item.id}/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer }),
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      feedback.textContent = `Correct! It's: ${data.name} — ${data.price}`;
+
+      const row = document.querySelector(`.ledger-row[data-id="${item.id}"]`);
+      row.innerHTML = `
+        <label class="check">
+          <input type="checkbox">
+          <span class="name">${data.name}</span>
+        </label>
+        <span class="price">${data.price}</span>
+      `;
+      row.querySelector('input[type="checkbox"]').addEventListener('change', () => toggleItem(item.id, row));
+
+      item.price = data.price;
+
+      const totalId = item.category === 'travel' ? 'travel-total' : 'shop-total';
+      const listId = item.category === 'travel' ? 'travel-list' : 'shop-list';
+      const allRows = document.querySelectorAll(`#${listId} .price`);
+      const total = [...allRows].reduce((sum, el) => sum + Number(el.textContent.replace(/[^\d]/g, '')), 0);
+      document.getElementById(totalId).innerHTML = `Total: <strong>${total.toLocaleString('en-US')}₫</strong>`;
+    } else {
+      feedback.textContent = data.message;
+    }
+  });
+}
+
+loadItems();
