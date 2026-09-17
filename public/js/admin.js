@@ -27,19 +27,36 @@ async function loadLogs() {
   const logs = await res.json();
 
   const body = document.getElementById('logsBody');
-  body.innerHTML = '';
-
-  logs.forEach(log => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
+  body.innerHTML = logs.map(log => `
+    <tr>
       <td>${log.time}</td>
       <td>${log.itemId}</td>
       <td>${log.result}</td>
-    `;
-    body.appendChild(row);
-  });
+    </tr>
+  `).join('');
+}
 
-  document.getElementById('f-type').addEventListener('change', (e) => {
+async function loadItemsManage() {
+  const res = await fetch('/api/admin/items');
+  const items = await res.json();
+  const el = document.getElementById('itemsList');
+
+  el.innerHTML = items.map(item => `
+    <div class="ledger-row">
+      <span class="name">[${item.type}] ${item.name || item.secretName || item.question}</span>
+      <button data-delete="${item.id}">Delete</button>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await fetch(`/api/admin/items/${btn.dataset.delete}`, { method: 'DELETE' });
+      loadItemsManage();
+    });
+  });
+}
+
+document.getElementById('f-type').addEventListener('change', (e) => {
   const isPublic = e.target.value === 'public';
   document.getElementById('publicFields').style.display = isPublic ? 'block' : 'none';
   document.getElementById('secretFields').style.display = isPublic ? 'none' : 'block';
@@ -68,26 +85,3 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   e.target.reset();
   loadItemsManage();
 });
-
-async function loadItemsManage() {
-  const res = await fetch('/api/admin/items');
-  const items = await res.json();
-  const el = document.getElementById('itemsList');
-
-  el.innerHTML = items.map(item => `
-    <div class="ledger-row">
-      <span class="name">
-        [${item.type}] ${item.name || item.secretName || item.question}
-      </span>
-      <button data-delete="${item.id}">Delete</button>
-    </div>
-  `).join('');
-
-  el.querySelectorAll('[data-delete]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      await fetch(`/api/admin/items/${btn.dataset.delete}`, { method: 'DELETE' });
-      loadItemsManage();
-    });
-  });
-}
-}

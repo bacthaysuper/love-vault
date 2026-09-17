@@ -15,7 +15,7 @@ async function loadItems() {
 function renderList(elementId, items) {
   const listElement = document.getElementById(elementId);
 
-  items.forEach(item => {
+  items.forEach((item, index) => {
     const row = document.createElement('div');
     row.dataset.id = item.id;
     row.style.animationDelay = `${index * 60}ms`;
@@ -39,18 +39,15 @@ function renderList(elementId, items) {
         </label>
         <span class="price">${item.price}</span>
       `;
-
-      const checkbox = row.querySelector('input[type="checkbox"]');
-      checkbox.addEventListener('change', () => toggleItem(item.id, row));
+      row.querySelector('input[type="checkbox"]').addEventListener('change', () => toggleItem(item.id));
     }
 
     listElement.appendChild(row);
   });
 }
 
-async function toggleItem(itemId, row) {
+async function toggleItem(itemId) {
   await fetch(`/api/items/${itemId}/toggle`, { method: 'POST' });
-  row.classList.toggle('completed');
 }
 
 function updateTotal(elementId, items) {
@@ -60,8 +57,15 @@ function updateTotal(elementId, items) {
     return sum + numeric;
   }, 0);
 
-  const formatted = total.toLocaleString('en-US') + '₫';
-  document.getElementById(elementId).innerHTML = `Total: <strong>${formatted}</strong>`;
+  document.getElementById(elementId).innerHTML = `Total: <strong>${total.toLocaleString('en-US')}₫</strong>`;
+}
+
+function recalculateTotal(category) {
+  const totalId = category === 'travel' ? 'travel-total' : 'shop-total';
+  const listId = category === 'travel' ? 'travel-list' : 'shop-list';
+  const rows = document.querySelectorAll(`#${listId} .price`);
+  const total = [...rows].reduce((sum, el) => sum + Number(el.textContent.replace(/[^\d]/g, '')), 0);
+  document.getElementById(totalId).innerHTML = `Total: <strong>${total.toLocaleString('en-US')}₫</strong>`;
 }
 
 function openPuzzle(item) {
@@ -79,9 +83,7 @@ function openPuzzle(item) {
   `;
   document.body.appendChild(backdrop);
 
-  document.getElementById('closeBtn').addEventListener('click', () => {
-  closeModal(backdrop);
-});
+  document.getElementById('closeBtn').addEventListener('click', () => closeModal(backdrop));
 
   document.getElementById('checkBtn').addEventListener('click', async () => {
     const answer = document.getElementById('answerInput').value;
@@ -100,24 +102,19 @@ function openPuzzle(item) {
       const row = document.querySelector(`.ledger-row[data-id="${item.id}"]`);
       row.innerHTML = `
         <label class="check">
-          <input type="checkbox">
+          <input type="checkbox" ${item.completed ? 'checked' : ''}>
           <span class="name">${data.name}</span>
         </label>
         <span class="price">${data.price}</span>
       `;
-      row.querySelector('input[type="checkbox"]').addEventListener('change', () => toggleItem(item.id, row));
+      row.querySelector('input[type="checkbox"]').addEventListener('change', () => toggleItem(item.id));
 
-      item.price = data.price;
-
-      const totalId = item.category === 'travel' ? 'travel-total' : 'shop-total';
-      const listId = item.category === 'travel' ? 'travel-list' : 'shop-list';
-      const allRows = document.querySelectorAll(`#${listId} .price`);
-      const total = [...allRows].reduce((sum, el) => sum + Number(el.textContent.replace(/[^\d]/g, '')), 0);
-      document.getElementById(totalId).innerHTML = `Total: <strong>${total.toLocaleString('en-US')}₫</strong>`;
+      recalculateTotal(item.category);
     } else {
       feedback.textContent = data.message;
     }
   });
+
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) closeModal(backdrop);
   });

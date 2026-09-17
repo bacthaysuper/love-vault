@@ -6,14 +6,13 @@ const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const DOOR_CODE = process.env.DOOR_CODE;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-const DOOR_CODE = '030326';
-const ADMIN_PASSWORD = 'kRhenshin2k3';
 
 const mailer = nodemailer.createTransport({
   service: 'gmail',
@@ -22,34 +21,6 @@ const mailer = nodemailer.createTransport({
     pass: process.env.EMAIL_APP_PASSWORD,
   },
 });
-
-app.post('/api/unlock', (req, res) => {
-  const { code } = req.body;
-
-  if (code === DOOR_CODE) {
-    res.json({ ok: true });
-  } else {
-    res.status(401).json({ ok: false, message: 'Wrong code, try again' });
-  }
-});
-
-app.get('/api/items', (req, res) => {
-  const publicItems = loadPublicItems().map(item => ({
-    ...item,
-    type: 'public',
-  }));
-
-  const secretItems = loadSecretItems().map(item => ({
-    id: item.id,
-    category: item.category,
-    type: 'secret',
-    question: item.question,
-    completed: item.completed,
-  }));
-
-  res.json([...publicItems, ...secretItems]);
-});
-
 
 function loadPublicItems() {
   const data = fs.readFileSync('./data/public-items.json', 'utf-8');
@@ -60,13 +31,13 @@ function savePublicItems(items) {
   fs.writeFileSync('./data/public-items.json', JSON.stringify(items, null, 2));
 }
 
-function saveSecretItems(items) {
-  fs.writeFileSync('./data/secret-items.json', JSON.stringify(items, null, 2));
-}
-
 function loadSecretItems() {
   const data = fs.readFileSync('./data/secret-items.json', 'utf-8');
   return JSON.parse(data);
+}
+
+function saveSecretItems(items) {
+  fs.writeFileSync('./data/secret-items.json', JSON.stringify(items, null, 2));
 }
 
 function logAttempt(itemId, isCorrect, submittedAnswer) {
@@ -91,6 +62,36 @@ function logAttempt(itemId, isCorrect, submittedAnswer) {
   }).catch(err => console.error('Email failed:', err.message));
 }
 
+function requireAdmin(req, res, next) {
+  if (req.cookies.admin_session !== 'granted') {
+    return res.status(403).json({ ok: false, message: 'Not logged in' });
+  }
+  next();
+}
+
+app.post('/api/unlock', (req, res) => {
+  const { code } = req.body;
+
+  if (code === DOOR_CODE) {
+    res.json({ ok: true });
+  } else {
+    res.status(401).json({ ok: false, message: 'Wrong code, try again' });
+  }
+});
+
+app.get('/api/items', (req, res) => {
+  const publicItems = loadPublicItems().map(item => ({ ...item, type: 'public' }));
+  const secretItems = loadSecretItems().map(item => ({
+    id: item.id,
+    category: item.category,
+    type: 'secret',
+    question: item.question,
+    completed: item.completed,
+  }));
+
+  res.json([...publicItems, ...secretItems]);
+});
+
 app.post('/api/items/:id/verify', (req, res) => {
   const { answer } = req.body;
   const itemId = req.params.id;
@@ -103,7 +104,7 @@ app.post('/api/items/:id/verify', (req, res) => {
   }
 
   const userAnswer = (answer || '').trim().toLowerCase();
-  const correctAnswer = item.answer.trim().toLowerCase();
+  const correctAnswer = (item.answer || '').trim().toLowerCase();
   const isCorrect = userAnswer === correctAnswer;
 
   logAttempt(itemId, isCorrect, answer);
@@ -113,77 +114,6 @@ app.post('/api/items/:id/verify', (req, res) => {
   } else {
     res.json({ ok: false, message: 'Not quite, try again' });
   }
-});
-
-app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ ok: false });
-  }
-
-  res.cookie('admin_session', 'granted', { httpOnly: true });
-  res.json({ ok: true });
-});
-
-app.get('/api/admin/logs', (req, res) => {
-  if (req.cookies.admin_session !== 'granted') {
-    return res.status(403).json({ ok: false, message: 'Not logged in' });
-  }
-
-  const logsData = fs.readFileSync('./data/logs.json', 'utf-8');
-  const logs = JSON.parse(logsData);
-  res.json(logs);
-});
-
-app.get('/api/admin/items', (req, res) => {
-  if (req.cookies.admin_session !== 'granted') {
-    return res.status(403).json({ ok: false, message: 'Not logged in' });
-  }
-
-  const publicItems = loadPublicItems().map(item => ({ ...item, type: 'public' }));
-  const secretItems = loadSecretItems().map(item => ({ ...item, type: 'secret' }));
-
-  res.json([...publicItems, ...secretItems]);
-});
-
-app.post('/api/admin/items', (req, res) => {
-  if (req.cookies.admin_session !== 'granted') {
-    return res.status(403).json({ ok: false, message: 'Not logged in' });
-  }
-
-  const { category, type, name, price, question, answer, secretName, secretPrice } = req.body;
-  const id = `${category}-${Date.now()}`;
-
-  if (type === 'public') {
-    const items = loadPublicItems();
-    items.push({ id, category, name, price, completed: false });
-    savePublicItems(items);
-  } else {
-    const items = loadSecretItems();
-    items.push({ id, category, question, answer, secretName, secretPrice, completed: false });
-    saveSecretItems(items);
-  }
-
-  res.json({ ok: true, id });
-});
-
-app.delete('/api/admin/items/:id', (req, res) => {
-  if (req.cookies.admin_session !== 'granted') {
-    return res.status(403).json({ ok: false, message: 'Not logged in' });
-  }
-
-  let items = loadPublicItems();
-  const foundInPublic = items.some(i => i.id === req.params.id);
-
-  if (foundInPublic) {
-    savePublicItems(items.filter(i => i.id !== req.params.id));
-  } else {
-    items = loadSecretItems();
-    saveSecretItems(items.filter(i => i.id !== req.params.id));
-  }
-
-  res.json({ ok: true });
 });
 
 app.post('/api/items/:id/toggle', (req, res) => {
@@ -212,6 +142,59 @@ app.post('/api/items/:id/toggle', (req, res) => {
   }
 
   res.json({ ok: true, completed: item.completed });
+});
+
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ ok: false });
+  }
+
+  res.cookie('admin_session', 'granted', { httpOnly: true });
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/logs', requireAdmin, (req, res) => {
+  const logsData = fs.readFileSync('./data/logs.json', 'utf-8');
+  res.json(JSON.parse(logsData));
+});
+
+app.get('/api/admin/items', requireAdmin, (req, res) => {
+  const publicItems = loadPublicItems().map(item => ({ ...item, type: 'public' }));
+  const secretItems = loadSecretItems().map(item => ({ ...item, type: 'secret' }));
+  res.json([...publicItems, ...secretItems]);
+});
+
+app.post('/api/admin/items', requireAdmin, (req, res) => {
+  const { category, type, name, price, question, answer, secretName, secretPrice } = req.body;
+  const id = `${category}-${Date.now()}`;
+
+  if (type === 'public') {
+    const items = loadPublicItems();
+    items.push({ id, category, name, price, completed: false });
+    savePublicItems(items);
+  } else {
+    const items = loadSecretItems();
+    items.push({ id, category, question, answer, secretName, secretPrice, completed: false });
+    saveSecretItems(items);
+  }
+
+  res.json({ ok: true, id });
+});
+
+app.delete('/api/admin/items/:id', requireAdmin, (req, res) => {
+  let items = loadPublicItems();
+  const foundInPublic = items.some(i => i.id === req.params.id);
+
+  if (foundInPublic) {
+    savePublicItems(items.filter(i => i.id !== req.params.id));
+  } else {
+    items = loadSecretItems();
+    saveSecretItems(items.filter(i => i.id !== req.params.id));
+  }
+
+  res.json({ ok: true });
 });
 
 app.listen(PORT, () => {
