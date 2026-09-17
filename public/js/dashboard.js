@@ -18,6 +18,7 @@ function renderList(elementId, items) {
   items.forEach(item => {
     const row = document.createElement('div');
     row.dataset.id = item.id;
+    row.style.animationDelay = `${index * 60}ms`;
 
     if (item.type === 'secret') {
       row.className = 'ledger-row secret';
@@ -79,8 +80,8 @@ function openPuzzle(item) {
   document.body.appendChild(backdrop);
 
   document.getElementById('closeBtn').addEventListener('click', () => {
-    backdrop.remove();
-  });
+  closeModal(backdrop);
+});
 
   document.getElementById('checkBtn').addEventListener('click', async () => {
     const answer = document.getElementById('answerInput').value;
@@ -117,6 +118,14 @@ function openPuzzle(item) {
       feedback.textContent = data.message;
     }
   });
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeModal(backdrop);
+  });
+}
+
+function closeModal(backdrop) {
+  backdrop.classList.add('closing');
+  setTimeout(() => backdrop.remove(), 150);
 }
 
 loadItems();

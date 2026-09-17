@@ -234,18 +234,16 @@ th {
   font-size: 12px;
 }
 
-.check {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
+.check .name {
+  transition: color 0.3s ease;
+  text-decoration-line: line-through;
+  text-decoration-color: transparent;
+  transition: color 0.3s ease, text-decoration-color 0.3s ease;
 }
 
-.check input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: #d1477a;
-  cursor: pointer;
+.check input:checked + .name {
+  color: #97a396;
+  text-decoration-color: #97a396;
 }
 
 .ledger-row.completed .name,
@@ -294,4 +292,56 @@ body.opening .door-left {
 
 body.opening .door-right {
   transform: translateX(0);
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ledger-row {
+  animation: row-in 0.4s ease backwards;
+}
+
+.ledger-row {
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ledger-row:hover {
+  background: rgba(200, 162, 74, 0.04);
+  transform: translateX(2px);
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-backdrop {
+  animation: fade-in 0.2s ease;
+}
+
+.modal-backdrop.closing {
+  animation: fade-in 0.15s ease reverse forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  animation: modal-in 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
