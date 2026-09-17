@@ -136,6 +136,56 @@ app.get('/api/admin/logs', (req, res) => {
   res.json(logs);
 });
 
+app.get('/api/admin/items', (req, res) => {
+  if (req.cookies.admin_session !== 'granted') {
+    return res.status(403).json({ ok: false, message: 'Not logged in' });
+  }
+
+  const publicItems = loadPublicItems().map(item => ({ ...item, type: 'public' }));
+  const secretItems = loadSecretItems().map(item => ({ ...item, type: 'secret' }));
+
+  res.json([...publicItems, ...secretItems]);
+});
+
+app.post('/api/admin/items', (req, res) => {
+  if (req.cookies.admin_session !== 'granted') {
+    return res.status(403).json({ ok: false, message: 'Not logged in' });
+  }
+
+  const { category, type, name, price, question, answer, secretName, secretPrice } = req.body;
+  const id = `${category}-${Date.now()}`;
+
+  if (type === 'public') {
+    const items = loadPublicItems();
+    items.push({ id, category, name, price, completed: false });
+    savePublicItems(items);
+  } else {
+    const items = loadSecretItems();
+    items.push({ id, category, question, answer, secretName, secretPrice, completed: false });
+    saveSecretItems(items);
+  }
+
+  res.json({ ok: true, id });
+});
+
+app.delete('/api/admin/items/:id', (req, res) => {
+  if (req.cookies.admin_session !== 'granted') {
+    return res.status(403).json({ ok: false, message: 'Not logged in' });
+  }
+
+  let items = loadPublicItems();
+  const foundInPublic = items.some(i => i.id === req.params.id);
+
+  if (foundInPublic) {
+    savePublicItems(items.filter(i => i.id !== req.params.id));
+  } else {
+    items = loadSecretItems();
+    saveSecretItems(items.filter(i => i.id !== req.params.id));
+  }
+
+  res.json({ ok: true });
+});
+
 app.post('/api/items/:id/toggle', (req, res) => {
   const itemId = req.params.id;
 

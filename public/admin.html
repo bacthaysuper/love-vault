@@ -27,6 +27,35 @@
       </thead>
       <tbody id="logsBody"></tbody>
     </table>
+        <h1 style="margin-top: 48px;">Manage Items</h1>
+
+    <div id="itemsList"></div>
+
+    <h2>Add New Item</h2>
+    <form id="addForm">
+      <select id="f-category">
+        <option value="travel">Travel</option>
+        <option value="shopping">Shopping</option>
+      </select>
+      <select id="f-type">
+        <option value="public">Public</option>
+        <option value="secret">Secret</option>
+      </select>
+
+      <div id="publicFields">
+        <input type="text" id="f-name" placeholder="Name">
+        <input type="text" id="f-price" placeholder="Price (e.g. 1,000,000₫)">
+      </div>
+
+      <div id="secretFields" style="display:none;">
+        <input type="text" id="f-question" placeholder="Question">
+        <input type="text" id="f-answer" placeholder="Answer">
+        <input type="text" id="f-secretName" placeholder="Real name (revealed on correct)">
+        <input type="text" id="f-secretPrice" placeholder="Real price">
+      </div>
+
+      <button type="submit">Add Item</button>
+    </form>
   </div>
 
   <script src="js/admin.js"></script>
