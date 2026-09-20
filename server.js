@@ -12,6 +12,9 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 app.use(express.json());
 app.use(cookieParser());
+app.get('/dashboard.html', requireDoorSession, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 const mailer = nodemailer.createTransport({
@@ -69,10 +72,18 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+function requireDoorSession(req, res, next) {
+  if (req.cookies.door_session !== 'granted') {
+    return res.status(403).json({ ok: false, message: 'Please unlock the door first' });
+  }
+  next();
+}
+
 app.post('/api/unlock', (req, res) => {
   const { code } = req.body;
 
-  if (code === DOOR_CODE) {
+    if (code === DOOR_CODE) {
+    res.cookie('door_session', 'granted', { httpOnly: true });
     res.json({ ok: true });
   } else {
     res.status(401).json({ ok: false, message: 'Wrong code, try again' });

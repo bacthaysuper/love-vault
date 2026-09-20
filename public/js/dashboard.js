@@ -1,5 +1,11 @@
 async function loadItems() {
   const res = await fetch('/api/items');
+
+  if (res.status === 403) {
+    window.location.href = '/';
+    return;
+  }
+
   const items = await res.json();
 
   const travelItems = items.filter(item => item.category === 'travel');
