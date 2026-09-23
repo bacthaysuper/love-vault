@@ -15,6 +15,13 @@ app.use(cookieParser());
 app.get('/dashboard.html', requireDoorSession, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
+app.get('/travel.html', requireDoorSession, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'travel.html'));
+});
+
+app.get('/shopping.html', requireDoorSession, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'shopping.html'));
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 const mailer = nodemailer.createTransport({

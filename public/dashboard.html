@@ -8,25 +8,28 @@
 </head>
 <body>
 
-  <div class="page">
+  <div class="page folder-page">
     <div class="page-header">
       <h1>Our Shared Vault</h1>
-      <p>Places we want to go, things we want to buy.</p>
+      <p>Pick a folder to see what's inside.</p>
     </div>
 
-    <div class="folder">
-      <h2>Travel</h2>
-      <div class="total" id="travel-total"></div>
-      <div class="ledger" id="travel-list"></div>
-    </div>
+    <div class="folder-grid">
+      <a href="/travel.html" class="folder-icon">
+        <svg viewBox="0 0 64 48" fill="none">
+          <path d="M2 8 C2 5.8 3.8 4 6 4 H24 L28 10 H58 C60.2 10 62 11.8 62 14 V40 C62 42.2 60.2 44 58 44 H6 C3.8 44 2 42.2 2 40 Z" fill="currentColor"/>
+        </svg>
+        <span>Travel</span>
+      </a>
 
-    <div class="folder">
-      <h2>Shopping</h2>
-      <div class="total" id="shop-total"></div>
-      <div class="ledger" id="shop-list"></div>
+      <a href="/shopping.html" class="folder-icon">
+        <svg viewBox="0 0 64 48" fill="none">
+          <path d="M2 8 C2 5.8 3.8 4 6 4 H24 L28 10 H58 C60.2 10 62 11.8 62 14 V40 C62 42.2 60.2 44 58 44 H6 C3.8 44 2 42.2 2 40 Z" fill="currentColor"/>
+        </svg>
+        <span>Shopping</span>
+      </a>
     </div>
   </div>
 
-  <script src="js/dashboard.js"></script>
 </body>
 </html>

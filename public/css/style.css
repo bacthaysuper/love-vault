@@ -343,3 +343,50 @@ body.opening .door-right {
 .modal {
   animation: modal-in 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
+
+.folder-grid {
+  display: flex;
+  gap: 48px;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.folder-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #ffb0c8;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.folder-icon svg {
+  width: 88px;
+  height: 66px;
+}
+
+.folder-icon span {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  color: #4a2f3d;
+}
+
+.folder-icon:hover {
+  color: #ffcfe0;
+  transform: translateY(-4px) scale(1.05);
+}
+
+.back-link {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  color: #d1477a;
+  text-decoration: none;
+  font-size: 14px;
+  z-index: 5;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
