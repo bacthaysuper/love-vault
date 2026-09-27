@@ -97,7 +97,7 @@ app.post('/api/unlock', (req, res) => {
   }
 });
 
-app.get('/api/items', (req, res) => {
+app.get('/api/items', requireDoorSession, (req, res) => {
   const publicItems = loadPublicItems().map(item => ({ ...item, type: 'public' }));
   const secretItems = loadSecretItems().map(item => ({
     id: item.id,
@@ -105,12 +105,14 @@ app.get('/api/items', (req, res) => {
     type: 'secret',
     question: item.question,
     completed: item.completed,
+    lat: item.lat,
+    lng: item.lng,
   }));
 
   res.json([...publicItems, ...secretItems]);
 });
 
-app.post('/api/items/:id/verify', (req, res) => {
+app.post('/api/items/:id/verify', requireDoorSession, (req, res) => {
   const { answer } = req.body;
   const itemId = req.params.id;
 
@@ -134,7 +136,7 @@ app.post('/api/items/:id/verify', (req, res) => {
   }
 });
 
-app.post('/api/items/:id/toggle', (req, res) => {
+app.post('/api/items/:id/toggle', requireDoorSession, (req, res) => {
   const itemId = req.params.id;
 
   let items = loadPublicItems();

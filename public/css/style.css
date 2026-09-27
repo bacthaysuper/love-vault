@@ -185,6 +185,7 @@ button:hover {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  z-index: 2000;
 }
 
 .modal {
@@ -389,4 +390,91 @@ body.opening .door-right {
 
 .back-link:hover {
   text-decoration: underline;
+}
+
+.map-body {
+  display: block;
+  padding: 60px 20px 40px;
+}
+
+#map {
+  height: 70vh;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(74, 47, 61, 0.15);
+}
+
+.basket-body {
+  display: block;
+  padding: 60px 20px 40px;
+}
+
+.basket-page {
+  max-width: 720px;
+}
+
+.basket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 24px;
+  padding: 10px 0;
+}
+
+.gift-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+}
+
+.gift-box svg {
+  width: 72px;
+  height: 72px;
+}
+
+.gift-box .box-body {
+  fill: #ffb0c8;
+}
+
+.gift-box .box-ribbon {
+  fill: #d1477a;
+}
+
+.gift-box.done .box-body {
+  fill: #d9c7ce;
+}
+
+.gift-box.done .box-ribbon {
+  fill: #a4788a;
+}
+
+.gift-box .box-mark {
+  fill: none;
+  stroke: #fffaf3;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.gift-box span {
+  font-size: 13px;
+  color: #8a6a76;
+}
+
+.gift-box.shaking svg {
+  animation: box-shake 0.4s ease;
+}
+
+@keyframes box-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg) scale(1.05); }
+  40% { transform: rotate(7deg) scale(1.05); }
+  60% { transform: rotate(-5deg) scale(1.03); }
+  80% { transform: rotate(4deg) scale(1.03); }
 }

@@ -6,8 +6,20 @@
   <title>Shopping</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="basket-body">
   <a href="/dashboard.html" class="back-link">&larr; Back</a>
-  <h1 style="text-align:center;">Shopping basket coming soon</h1>
+
+  <div class="page basket-page">
+    <div class="page-header">
+      <h1>Shopping Basket</h1>
+      <p>Tap a gift box to open it.</p>
+    </div>
+
+    <div class="basket-grid" id="basketGrid"></div>
+  </div>
+
+  <div id="modalRoot"></div>
+
+  <script src="js/shopping.js"></script>
 </body>
 </html>
